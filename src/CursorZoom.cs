@@ -60,18 +60,21 @@ namespace CursorZoom
 		}
 
         private static int clampCameraCallsInFrame = 0;
-        private static Vector3 frameInitialTargetPosition;
-        private static float frameInitialTargetSize;
+        // private static Vector3 frameInitialTargetPosition;
+        private static float frameInitialCurrentSize;
 
         private Vector3 frameInitialActualPosition;
         private Ray mouseRay;
 
+        private static bool readyForMagic;
+
         private void Update()
         {
+            readyForMagic = false;
             if (cameraController != null)
             {
-                frameInitialTargetPosition = cameraController.m_targetPosition;
-                frameInitialTargetSize = cameraController.m_targetSize;
+                // frameInitialTargetPosition = cameraController.m_targetPosition;
+                frameInitialCurrentSize = cameraController.m_currentSize;
                 frameInitialActualPosition = cameraController.transform.position;
                 clampCameraCallsInFrame = 0;
                 mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -80,12 +83,12 @@ namespace CursorZoom
 
         private void LateUpdate()
         {
-            if (cameraController != null)
-            {
-                if (frameInitialTargetSize != cameraController.m_targetSize)
-                {
-                        // Debug.Log("final target pos " + cameraController.m_targetPosition);
-                    var displacement = cameraController.transform.position - frameInitialActualPosition;
+            // if (cameraController != null)
+            // {
+            //     if (frameInitialTargetSize != cameraController.m_targetSize)
+            //     {
+            //             // Debug.Log("final target pos " + cameraController.m_targetPosition);
+            //         var displacement = cameraController.transform.position - frameInitialActualPosition;
 
 
 
@@ -99,20 +102,22 @@ namespace CursorZoom
             // Debug.Log("fixed target " + targetPosition);
 
 
-                }
-            }
+            //     }
+            // }
         }
 
         private static Vector3 ClampCameraPosition(Vector3 position)
         {
-            if (cameraController != null && position == cameraController.m_targetPosition)
+            if (readyForMagic && frameInitialCurrentSize != cameraController.m_currentSize)
             {
-                // this is the final call just before we update currentPosition, so time to correct the x and z coordinates
-                // target size changed indicates that we've zoomed
-                if (frameInitialTargetSize != cameraController.m_targetSize)
-                {
-                    position = TargetPositionWithFixedZoom(frameInitialTargetPosition, position);
-                }
+                position = FixCurrentPosition(position);
+                readyForMagic = false;
+            }
+            else if (cameraController != null && position == cameraController.m_targetPosition)
+            {
+                // we are now at the end of the UpdateTargetPosition function
+                // on the next call to this function we will be in UpdateTransform and then we can do our magic
+                readyForMagic = true;
             }
 
             // original clamping code follows
@@ -136,34 +141,16 @@ namespace CursorZoom
             return position;
         }
 
-        private static Vector3 TargetPositionWithFixedZoom(Vector3 frameInitialTargetPosition, Vector3 targetPosition)
+        private static Vector3 FixCurrentPosition(Vector3 position)
         {
-            // Debug.Log("Fixing zoom");
-            // Debug.Log("target before zoom calc " + frameInitialTargetPosition);
-            // Debug.Log("actual camera position " + cameraController.transform.position);
-            // Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-            // float deltaY = targetPosition.y - frameInitialTargetPosition.y;
-            // Debug.Log("Delta y = " + deltaY);
-            // float distance = deltaY / mouseRay.direction.y;
-            // Debug.Log("Mouse ray origin " + mouseRay.origin + ", direction" + mouseRay.direction);
-            // Debug.Log("wrong target " + targetPosition);
-            // targetPosition.x += distance * mouseRay.direction.x;
-            // targetPosition.z += distance * mouseRay.direction.z;
-            // Debug.Log("fixed target " + targetPosition);
+            // at this moment, we've been passed m_currentPosition + some rotation.
+            // we can figure out from how much m_currentSize has changed what the zoom factor was,
+            // and adjust x and z accordingly, by incrementing position.x and position.z that we return.
+            // we will need to apply the same adjustment to m_currentPosition and m_targetPosition.
 
-
-            // // totally new approach
-
-            // var shiftCentreX = (0.5f + Input.mousePosition.x / 2560) * (frameInitialTargetSize - cameraController.m_targetSize);
-            // var shiftCentreY = (0.5f + Input.mousePosition.y / 1440) * (frameInitialTargetSize - cameraController.m_targetSize) * 0.7f;
-            // // var mouseRay = Camera.main.ScreenPointToRay(new Vector3(Input.mousePosition.x + shiftCentreX, Input.mousePosition.y + shiftCentreY, 0));
-
-            // targetPosition.x += shiftCentreX;
-            // targetPosition.z += shiftCentreY;
-
-            if (frameInitialTargetSize == 0f || cameraController.m_targetSize == 0f)
+            if (frameInitialCurrentSize == 0f || cameraController.m_currentSize == 0f)
             {
-                return targetPosition;
+                return position;
             }
 
             float m_mouseRayLength = Camera.main.farClipPlane;
@@ -173,34 +160,31 @@ namespace CursorZoom
             if (raycast.RayCasted(input, out output))
             {
                 var hitPosition = output.m_hitPos;
+                Debug.Log("current size changed from " + frameInitialCurrentSize + " to " + cameraController.m_currentSize);
+                var zoomingIn = cameraController.m_currentSize < frameInitialCurrentSize;
+                var sizeFraction = frameInitialCurrentSize / cameraController.m_currentSize;
 
-                Vector3 current = cameraController.m_currentPosition;
-
-                Debug.Log("target size changed from " + frameInitialTargetSize + " to " + cameraController.m_targetSize);
-
-                var zoomingIn = cameraController.m_targetSize < frameInitialTargetSize;
-
-                var sizeFraction = zoomingIn ? frameInitialTargetSize / cameraController.m_targetSize : cameraController.m_targetSize / frameInitialTargetSize;
-
-                var fractionTowardsCursor = (zoomingIn ? 1f : -1.25f) * (1f - 1f / sizeFraction);
-                var deltaX =  fractionTowardsCursor * (hitPosition.x - current.x);
-                var deltaZ = fractionTowardsCursor * (hitPosition.z - current.z);
+                var fractionTowardsCursor = 1f - 1f / sizeFraction;
+                var deltaX =  fractionTowardsCursor * (hitPosition.x - cameraController.m_currentPosition.x);
+                var deltaZ = fractionTowardsCursor * (hitPosition.z - cameraController.m_currentPosition.z);
 
                 Debug.Log("fraction towards cursor = " + fractionTowardsCursor);
-                Debug.Log("original target pos = " + targetPosition);
+                Debug.Log("original current pos = " + cameraController.m_currentPosition);
 
-                targetPosition.x += deltaX;
-                targetPosition.z += deltaZ;
+                position.x += deltaX;
+                position.z += deltaZ;
+                cameraController.m_targetPosition.x += deltaX;
+                cameraController.m_targetPosition.z += deltaZ;
+                cameraController.m_currentPosition.x += deltaX;
+                cameraController.m_currentPosition.z += deltaZ;
 
-                Debug.Log("new target pos = " + targetPosition);
+                Debug.Log("new current pos = " + cameraController.m_currentPosition);
 
                 var angle = Vector3.Angle(m_mouseRay.direction, Vector3.down);
                 Debug.Log("angle of mouse against vertical " + angle);
-                // problems to correct:
-                // when very zoomed in, still vertically above,
             }
 
-            return targetPosition;
+            return position;
         }
 
         // void Update()

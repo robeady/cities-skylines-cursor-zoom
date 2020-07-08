@@ -124,7 +124,6 @@ namespace CursorZoom
             {
                 var hitPosition = output.m_hitPos;
                 Debug.Log("current size changed from " + frameInitialCurrentSize + " to " + cameraController.m_currentSize);
-                var zoomingIn = cameraController.m_currentSize < frameInitialCurrentSize;
                 var sizeFraction = frameInitialCurrentSize / cameraController.m_currentSize;
 
                 var fractionTowardsCursor = 1f - 1f / sizeFraction;

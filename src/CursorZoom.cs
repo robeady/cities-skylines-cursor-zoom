@@ -1,9 +1,6 @@
 ﻿using ICities;
 using UnityEngine;
-using ColossalFramework;
-using ColossalFramework.UI;
 using System.Reflection;
-using System;
 
 namespace CursorZoom
 {
@@ -59,12 +56,7 @@ namespace CursorZoom
             RedirectionHelper.RedirectCalls(oldMethod, newMethod);
 		}
 
-        private static int clampCameraCallsInFrame = 0;
-        // private static Vector3 frameInitialTargetPosition;
         private static float frameInitialCurrentSize;
-
-        private Vector3 frameInitialActualPosition;
-        private Ray mouseRay;
 
         private static bool readyForMagic;
 
@@ -73,37 +65,8 @@ namespace CursorZoom
             readyForMagic = false;
             if (cameraController != null)
             {
-                // frameInitialTargetPosition = cameraController.m_targetPosition;
                 frameInitialCurrentSize = cameraController.m_currentSize;
-                frameInitialActualPosition = cameraController.transform.position;
-                clampCameraCallsInFrame = 0;
-                mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
             }
-        }
-
-        private void LateUpdate()
-        {
-            // if (cameraController != null)
-            // {
-            //     if (frameInitialTargetSize != cameraController.m_targetSize)
-            //     {
-            //             // Debug.Log("final target pos " + cameraController.m_targetPosition);
-            //         var displacement = cameraController.transform.position - frameInitialActualPosition;
-
-
-
-            // float deltaY = targetPosition.y - frameInitialTargetPosition.y;
-            // Debug.Log("Delta y = " + deltaY);
-            // float distance = deltaY / mouseRay.direction.y;
-            // Debug.Log("Mouse ray origin " + mouseRay.origin + ", direction" + mouseRay.direction);
-            // Debug.Log("wrong target " + targetPosition);
-            // targetPosition.x += distance * mouseRay.direction.x;
-            // targetPosition.z += distance * mouseRay.direction.z;
-            // Debug.Log("fixed target " + targetPosition);
-
-
-            //     }
-            // }
         }
 
         private static Vector3 ClampCameraPosition(Vector3 position)
@@ -186,73 +149,5 @@ namespace CursorZoom
 
             return position;
         }
-
-        // void Update()
-        // {
-        //     if (cameraController.m_freeCamera)
-        //     {
-        //         // TODO
-        //     }
-        //     else if (Input.GetAxis("Mouse ScrollWheel") != 0f)
-        //     {
-        //         float m_mouseRayLength = Camera.main.farClipPlane;
-        //         Ray m_mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-
-        //         var lowest_y = 0; // TODO
-
-        //         Vector3 hitPos5 = new Vector3(0, 0, 0);
-
-        //         ToolBase.RaycastInput input = new ToolBase.RaycastInput(m_mouseRay, m_mouseRayLength);
-        //         ToolBase.RaycastOutput output;
-        //         if (raycast.RayCasted(input, out output))
-        //         {
-        //             hitPos5 = output.m_hitPos;
-        //             var hitPos4 = hitPos5;
-
-        //             Vector3 newTargetPos;
-
-        //             var a = cameraController.m_currentPosition.x;
-        //             var b = cameraController.m_currentPosition.y;
-        //             var c = cameraController.m_currentPosition.z;
-
-        //             var d = hitPos4.x;
-        //             var e = hitPos4.y;
-        //             var f = hitPos4.z;
-
-        //             float factor = 1.5f;
-
-        //             if (zoomVel > 0)
-        //             {
-        //                 factor = 0.5f;
-        //             }
-
-        //             var g = b - factor * (b - cameraController.m_targetPosition.y) * (1 + lowest_y / b);
-        //             if (g < e)
-        //             {
-        //                 g = e;
-
-        //             }
-
-        //             newTargetPos.x = (float)((-a * e + a * g + b * d - d * g) / (b - e));
-        //             newTargetPos.z = (float)((b * f - c * e + c * g - f * g) / (b - e));
-
-        //             if (zoomVel > 0)
-        //             {
-        //                 if (b - lowest_y > 100)
-        //                 {
-        //                     newTargetPos.x = 2 * a - newTargetPos.x;
-        //                     newTargetPos.z = 2 * c - newTargetPos.z;
-        //                 }
-        //                 else {
-        //                     newTargetPos = cameraController.m_targetPosition;
-        //                 }
-        //             }
-
-        //             cameraController.m_targetPosition.x = newTargetPos.x;
-        //             cameraController.m_targetPosition.z = newTargetPos.z;
-        //         }
-        //     }
-        // }
-
 	}
 }

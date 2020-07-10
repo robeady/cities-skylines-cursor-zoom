@@ -54,6 +54,8 @@ namespace CursorZoom
             var oldMethod = typeof(CameraController).GetMethod("ClampCameraPosition", BindingFlags.Public | BindingFlags.Static);
             var newMethod = typeof(CursorZoomBehaviour).GetMethod("ClampCameraPosition", BindingFlags.NonPublic | BindingFlags.Static);
             RedirectionHelper.RedirectCalls(oldMethod, newMethod);
+
+            cameraController.m_maxTiltDistance = 1000000f;
 		}
 
         private static float frameInitialCurrentSize;
@@ -74,7 +76,6 @@ namespace CursorZoom
             if (readyForMagic && frameInitialCurrentSize != cameraController.m_currentSize)
             {
                 position = FixCurrentPosition(position);
-                readyForMagic = false;
             }
             else if (cameraController != null && position == cameraController.m_targetPosition)
             {
@@ -139,11 +140,6 @@ namespace CursorZoom
                 cameraController.m_targetPosition.z += deltaZ;
                 cameraController.m_currentPosition.x += deltaX;
                 cameraController.m_currentPosition.z += deltaZ;
-
-                Debug.Log("new current pos = " + cameraController.m_currentPosition);
-
-                var angle = Vector3.Angle(m_mouseRay.direction, Vector3.down);
-                Debug.Log("angle of mouse against vertical " + angle);
             }
 
             return position;

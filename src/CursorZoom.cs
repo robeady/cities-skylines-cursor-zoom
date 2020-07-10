@@ -45,16 +45,16 @@ namespace CursorZoom
 
         private static RayCaster raycaster = new RayCaster();
 
-		void Start()
+		private void Start()
 		{
-            DebugOutputPanel.AddMessage(ColossalFramework.Plugins.PluginManager.MessageType.Message, "[CursorZoom] Hello!");
-
             cameraController = GameObject.FindObjectOfType<CameraController>();
 
             var oldMethod = typeof(CameraController).GetMethod("ClampCameraPosition", BindingFlags.Public | BindingFlags.Static);
             var newMethod = typeof(CursorZoomBehaviour).GetMethod("ClampCameraPosition", BindingFlags.NonPublic | BindingFlags.Static);
             RedirectionHelper.RedirectCalls(oldMethod, newMethod);
 
+            // originally 5000, this value causes tilt to change as you zoom in and out.
+            // we need to disable this behaviour for fixed-cursor-on-zoom to make sense.
             cameraController.m_maxTiltDistance = 1000000f;
 		}
 
@@ -121,11 +121,9 @@ namespace CursorZoom
             if (raycaster.CastRay(new ToolBase.RaycastInput(mouseRay, mouseRayLength), out output))
             {
                 var sizeFraction = cameraController.m_currentSize / frameInitialCurrentSize;
-
                 var fractionTowardsCursor = 1f - sizeFraction;
                 var correction =  fractionTowardsCursor * (output.m_hitPos - cameraController.m_currentPosition);
                 correction.y = 0f;
-
                 position += correction;
                 cameraController.m_targetPosition += correction;
                 cameraController.m_currentPosition += correction;
@@ -138,9 +136,7 @@ namespace CursorZoom
     {
         public bool CastRay(ToolBase.RaycastInput input, out ToolBase.RaycastOutput output)
         {
-            bool a = RayCast(input, out output);
-
-            return a;
+            return RayCast(input, out output);
         }
     }
 }

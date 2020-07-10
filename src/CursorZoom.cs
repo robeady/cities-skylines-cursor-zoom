@@ -43,7 +43,7 @@ namespace CursorZoom
 	{
         private static CameraController cameraController;
 
-        private static RayCaster raycast = new RayCaster();
+        private static RayCaster raycaster = new RayCaster();
 
 		void Start()
 		{
@@ -60,28 +60,26 @@ namespace CursorZoom
 
         private static float frameInitialCurrentSize;
 
-        private static bool readyForMagic;
+        private static bool readyToApplyFix;
 
         private void Update()
         {
-            readyForMagic = false;
-            if (cameraController != null)
-            {
-                frameInitialCurrentSize = cameraController.m_currentSize;
-            }
+            readyToApplyFix = false;
+            frameInitialCurrentSize = cameraController.m_currentSize;
         }
 
         private static Vector3 ClampCameraPosition(Vector3 position)
         {
-            if (readyForMagic && frameInitialCurrentSize != cameraController.m_currentSize)
+            if (readyToApplyFix)
             {
                 position = FixCurrentPosition(position);
+                readyToApplyFix = false;
             }
-            else if (cameraController != null && position == cameraController.m_targetPosition)
+            else if (position == cameraController.m_targetPosition)
             {
                 // we are now at the end of the UpdateTargetPosition function
                 // on the next call to this function we will be in UpdateTransform and then we can do our magic
-                readyForMagic = true;
+                readyToApplyFix = true;
             }
 
             // original clamping code follows
@@ -112,37 +110,37 @@ namespace CursorZoom
             // and adjust x and z accordingly, by incrementing position.x and position.z that we return.
             // we will need to apply the same adjustment to m_currentPosition and m_targetPosition.
 
-            if (frameInitialCurrentSize == 0f || cameraController.m_currentSize == 0f)
+            if (frameInitialCurrentSize == 0f || cameraController.m_currentSize == 0f || frameInitialCurrentSize == cameraController.m_currentSize)
             {
                 return position;
             }
 
-            float m_mouseRayLength = Camera.main.farClipPlane;
-            Ray m_mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-            ToolBase.RaycastInput input = new ToolBase.RaycastInput(m_mouseRay, m_mouseRayLength);
+            float mouseRayLength = Camera.main.farClipPlane;
+            Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
             ToolBase.RaycastOutput output;
-            if (raycast.RayCasted(input, out output))
+            if (raycaster.CastRay(new ToolBase.RaycastInput(mouseRay, mouseRayLength), out output))
             {
-                var hitPosition = output.m_hitPos;
-                Debug.Log("current size changed from " + frameInitialCurrentSize + " to " + cameraController.m_currentSize);
-                var sizeFraction = frameInitialCurrentSize / cameraController.m_currentSize;
+                var sizeFraction = cameraController.m_currentSize / frameInitialCurrentSize;
 
-                var fractionTowardsCursor = 1f - 1f / sizeFraction;
-                var deltaX =  fractionTowardsCursor * (hitPosition.x - cameraController.m_currentPosition.x);
-                var deltaZ = fractionTowardsCursor * (hitPosition.z - cameraController.m_currentPosition.z);
+                var fractionTowardsCursor = 1f - sizeFraction;
+                var correction =  fractionTowardsCursor * (output.m_hitPos - cameraController.m_currentPosition);
+                correction.y = 0f;
 
-                Debug.Log("fraction towards cursor = " + fractionTowardsCursor);
-                Debug.Log("original current pos = " + cameraController.m_currentPosition);
-
-                position.x += deltaX;
-                position.z += deltaZ;
-                cameraController.m_targetPosition.x += deltaX;
-                cameraController.m_targetPosition.z += deltaZ;
-                cameraController.m_currentPosition.x += deltaX;
-                cameraController.m_currentPosition.z += deltaZ;
+                position += correction;
+                cameraController.m_targetPosition += correction;
+                cameraController.m_currentPosition += correction;
             }
 
             return position;
         }
 	}
+    class RayCaster : ToolBase
+    {
+        public bool CastRay(ToolBase.RaycastInput input, out ToolBase.RaycastOutput output)
+        {
+            bool a = RayCast(input, out output);
+
+            return a;
+        }
+    }
 }

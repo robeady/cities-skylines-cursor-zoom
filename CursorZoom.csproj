@@ -33,9 +33,7 @@
   <ItemGroup>
     <Compile Include="src\CursorZoom.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="src\RayCaster.cs" />
     <Compile Include="src\RedirectionHelper.cs" />
-    <Compile Include="src\Util.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">

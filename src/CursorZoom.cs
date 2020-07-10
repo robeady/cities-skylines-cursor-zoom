@@ -1,6 +1,5 @@
 ﻿using ICities;
 using UnityEngine;
-using System.Reflection;
 
 namespace CursorZoom
 {
@@ -73,11 +72,10 @@ namespace CursorZoom
             {
                 return;
             }
-            ToolBase.RaycastOutput output;
+            RayCaster.RaycastOutput output;
             if (raycaster.CastRay(frameInitialMouseRaycastInput, out output))
             {
-                var sizeFraction = cameraController.m_currentSize / frameInitialCurrentSize;
-                var fractionTowardsCursor = 1f - sizeFraction;
+                var fractionTowardsCursor = 1f - cameraController.m_currentSize / frameInitialCurrentSize;
                 var correction =  fractionTowardsCursor * (output.m_hitPos - cameraController.m_currentPosition);
                 correction.y = 0f;
                 cameraController.transform.position += correction;

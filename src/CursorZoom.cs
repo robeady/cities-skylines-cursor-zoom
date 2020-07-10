@@ -3,22 +3,22 @@ using UnityEngine;
 
 namespace CursorZoom
 {
-	public class CursorZoomMod : IUserMod
-	{
-		public string Name
-		{
-			get { return "Cursor Zoom"; }
-		}
+    public class CursorZoomMod : IUserMod
+    {
+        public string Name
+        {
+            get { return "Cursor Zoom"; }
+        }
 
-		public string Description
-		{
-			get { return "Zooms the camera keeping the cursor position constant"; }
-		}
-	}
+        public string Description
+        {
+            get { return "Zooms the camera keeping the cursor position constant"; }
+        }
+    }
 
 
-	public class CursorZoomLoader: LoadingExtensionBase
-	{
+    public class CursorZoomLoader: LoadingExtensionBase
+    {
         CursorZoomBehaviour instance;
 
         public override void OnLevelUnloading()
@@ -31,27 +31,27 @@ namespace CursorZoom
         }
 
         public override void OnLevelLoaded(LoadMode mode)
-		{
+        {
             instance = GameObject.FindObjectOfType<CameraController>().gameObject.AddComponent<CursorZoomBehaviour>();
-			base.OnLevelLoaded(mode);
-		}
-	}
+            base.OnLevelLoaded(mode);
+        }
+    }
 
 
-	public class CursorZoomBehaviour: MonoBehaviour
-	{
+    public class CursorZoomBehaviour: MonoBehaviour
+    {
         private CameraController cameraController;
 
         private static RayCaster raycaster = new RayCaster();
 
-		private void Start()
-		{
+        private void Start()
+        {
             cameraController = GameObject.FindObjectOfType<CameraController>();
 
             // originally 5000, this value causes tilt to change as you zoom in and out.
             // we need to disable this behaviour for fixed-cursor-on-zoom to make sense.
             cameraController.m_maxTiltDistance = 1000000f;
-		}
+        }
 
         private float frameInitialCurrentSize;
 
@@ -83,7 +83,7 @@ namespace CursorZoom
                 cameraController.m_currentPosition += correction;
             }
         }
-	}
+    }
 
     class RayCaster : ToolBase
     {

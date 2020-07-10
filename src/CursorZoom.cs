@@ -87,7 +87,7 @@ namespace CursorZoom
 
     class RayCaster : ToolBase
     {
-        public bool CastRay(ToolBase.RaycastInput input, out ToolBase.RaycastOutput output)
+        public bool CastRay(RaycastInput input, out RaycastOutput output)
         {
             return RayCast(input, out output);
         }

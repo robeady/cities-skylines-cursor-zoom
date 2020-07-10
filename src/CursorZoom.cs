@@ -45,18 +45,25 @@ namespace CursorZoom
 
         private static RayCaster raycaster = new RayCaster();
 
+        private MethodInfo oldClampMethod = typeof(CameraController).GetMethod("ClampCameraPosition", BindingFlags.Public | BindingFlags.Static);
+        private MethodInfo newClampMethod = typeof(CursorZoomBehaviour).GetMethod("ClampCameraPosition", BindingFlags.NonPublic | BindingFlags.Static);
+        private RedirectCallsState redirectState;
+
 		private void Start()
 		{
             cameraController = GameObject.FindObjectOfType<CameraController>();
 
-            var oldMethod = typeof(CameraController).GetMethod("ClampCameraPosition", BindingFlags.Public | BindingFlags.Static);
-            var newMethod = typeof(CursorZoomBehaviour).GetMethod("ClampCameraPosition", BindingFlags.NonPublic | BindingFlags.Static);
-            RedirectionHelper.RedirectCalls(oldMethod, newMethod);
+            redirectState = RedirectionHelper.RedirectCalls(oldClampMethod, newClampMethod);
 
             // originally 5000, this value causes tilt to change as you zoom in and out.
             // we need to disable this behaviour for fixed-cursor-on-zoom to make sense.
             cameraController.m_maxTiltDistance = 1000000f;
 		}
+
+        private void OnDestroy()
+        {
+            RedirectionHelper.RevertRedirect(oldClampMethod, redirectState);
+        }
 
         private static float frameInitialCurrentSize;
 
@@ -128,7 +135,6 @@ namespace CursorZoom
                 cameraController.m_targetPosition += correction;
                 cameraController.m_currentPosition += correction;
             }
-
             return position;
         }
 	}

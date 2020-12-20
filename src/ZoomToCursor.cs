@@ -1,25 +1,25 @@
 ﻿using ICities;
 using UnityEngine;
 
-namespace CursorZoom
+namespace ZoomToCursor
 {
-    public class CursorZoomMod : IUserMod
+    public class ZoomToCursorMod : IUserMod
     {
         public string Name
         {
-            get { return "Cursor Zoom"; }
+            get { return "Zoom to Cursor"; }
         }
 
         public string Description
         {
-            get { return "Zooms the camera keeping the cursor position constant"; }
+            get { return "Modifies the camera behaviour such that scrolling zooms in or out while keeping the cursor in the same place."; }
         }
     }
 
 
-    public class CursorZoomLoader: LoadingExtensionBase
+    public class ZoomToCursorLoader: LoadingExtensionBase
     {
-        CursorZoomBehaviour instance;
+        ZoomToCursorBehaviour instance;
 
         public override void OnLevelUnloading()
         {
@@ -32,13 +32,13 @@ namespace CursorZoom
 
         public override void OnLevelLoaded(LoadMode mode)
         {
-            instance = GameObject.FindObjectOfType<CameraController>().gameObject.AddComponent<CursorZoomBehaviour>();
+            instance = GameObject.FindObjectOfType<CameraController>().gameObject.AddComponent<ZoomToCursorBehaviour>();
             base.OnLevelLoaded(mode);
         }
     }
 
 
-    public class CursorZoomBehaviour: MonoBehaviour
+    public class ZoomToCursorBehaviour: MonoBehaviour
     {
         private CameraController cameraController;
 
@@ -47,7 +47,6 @@ namespace CursorZoom
         private void Start()
         {
             cameraController = GameObject.FindObjectOfType<CameraController>();
-
             // originally 5000, this value causes tilt to change as you zoom in and out.
             // we need to disable this behaviour for fixed-cursor-on-zoom to make sense.
             cameraController.m_maxTiltDistance = 1000000f;
